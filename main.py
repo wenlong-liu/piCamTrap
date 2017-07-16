@@ -12,6 +12,7 @@ import logging
 import time
 import picamera
 from gupload import auto_drive, upload_to_cloud
+from tweetAnimal import tweet_pic
 
 # for PIR motion method.  We have another method comming.
 import PIR_motion 
@@ -72,6 +73,8 @@ if __name__ == "__main__":
                     time.sleep(0.5)
                     # Test upload to cloud function.
                     upload_to_cloud(drive, file)
+                    status = "I found something at: {}".formart(_get_time())
+                    tweet_pic.TweetPic(status=status, media_ids=file)
                     
             time.sleep(0.5)
  
