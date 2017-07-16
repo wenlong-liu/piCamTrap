@@ -14,9 +14,7 @@ import picamera
 from gupload import auto_drive, upload_to_cloud
 
 # for PIR motion method.  We have another method comming.
-import PIR_motion.run as run
-
-os.chdir("/home/pi/rawcam")
+import PIR_motion 
 
 
 def _get_time():
@@ -25,71 +23,55 @@ def _get_time():
 
 def _take_image(cam):
     current = _get_time()
+    path = '/home/pi/github/piCamTrap/rawcam/'
     file_name = current + ".jpg"
+    file_path = path + file_name
     # Try to take a picture, if not, save to logging.
     #try:
-    cam.capture(file_name)
+    cam.capture(file_path)
     logging.info("Take a picture at: {}".format(current))
     time.sleep(0.5)
 
-    return file_name
+    return file_path
 '''
     except:
-
+        print('Failed to take a pic!')
         logging.debug("Failed to take a picture at: {}".format(current))
         time.sleep(0.5)
 '''
 
 
-def _publish(topic, payload=None, qos=0,host="localhost", port=1883, client_id=""):
+def _publish(topic, payload=None, qos=0, port=1883, client_id=""):
 
     import paho.mqtt.publish as publish
-    try:
-        publish.single(topic, payload=payload, qos=qos,host=host, port=port, client_id=client_id)
-        logging.info("Publish a message at: {}".format(_get_time()))
-
-    except ValueError as e:
-        logging.debug(e)
-
-    except KeyError as e:
-        logging.debug(e)
+    publish.single(topic, payload=payload, qos=qos, port=port, client_id=client_id)
+    logging.info("Publish a message at: {}".format(_get_time()))
 
 
-def main():
-    # Take three submissive pics.
-    image_num = 3
-    # Initialize google drive, picamera.
-
+if __name__ == "__main__":
+    print('Program started!')
     drive = auto_drive()
     cam = picamera.PiCamera()
-
+    
     while True:
-        try:
-            trigger = run()
+            image_num = 3
+            #trigger = PIR_motion.run()
+            trigger = int(input('Please enter a number, 0 or 1'))
             files = list()
             if trigger:
                 # if detection motion, take 3 pictures.
                 while image_num:
                     files.append(_take_image(cam))
-                    image_num -= 1
+                    print('Taking the {} pic!'.format(image_num))
+                    image_num = image_num - 1
                     time.sleep(0.5)
-                # Publish images to local host.
+                           # Publish images to local host.
                 for file in files:
                     _publish(topic = 'berrynet/event/localImage', payload=file)
-                    logging.info("Publish a file to localhost at {}".format(_get_time()))
-
-            """
-            # if have a positive result, upload the file to google drive.
-            if result:
-               upload_to_cloud(drive,file)
-               
-            """
-
+                    print('Publish a file')
+                    time.sleep(0.5)
+                    # Test upload to cloud function.
+                    upload_to_cloud(drive, file)
+                    
             time.sleep(0.5)
-
-        except KeyboardInterrupt as e:
-            logging.info("System terminated at : {}".format(_get_time())))
-            break
-
-if __name__ == "main":
-    main()
+ 

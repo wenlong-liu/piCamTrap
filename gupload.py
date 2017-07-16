@@ -1,6 +1,7 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import logging
+import time
 
 
 def auto_drive():
@@ -23,7 +24,6 @@ def auto_drive():
     # Save the current credentials to a file
     gauth.SaveCredentialsFile("mycreds.txt")
     drive = GoogleDrive(gauth)
-
     return drive
 
 
@@ -33,4 +33,4 @@ def upload_to_cloud(drive, file):
     submit.SetContentFile(file)
     submit.Upload()
     print("Upload a file to G-Drive.")
-    logging.info("Upload a file to Google Drive at: {}".format(time.strftime("%Y/%M/%D %H:%M:%S")))
+    logging.info("Upload a file to Google Drive at: {}".format(time.strftime("%Y-%m-%d %H:%M:%S")))

@@ -7,7 +7,7 @@ Platform: Raspberry Pi 3 Model B.
 """
 import time
 import logging
-import PRi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 def _logging(*args):
