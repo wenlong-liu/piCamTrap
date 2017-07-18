@@ -1,3 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
 mycreds.txt
 client_secrets.json
+.idea
+twitter_api.yml

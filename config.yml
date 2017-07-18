@@ -1,0 +1,14 @@
+img_num: 3
+recover_time: 10
+camera: 'picamera'
+google_secret: 'mycreds.txt'
+twitter_secret: 'twitter_api.yml'
+
+
+targets: ['person','bird','dog','deer']
+location: 'Raleigh, NC'
+id: 'PCT_alpha'
+confidence_threshold: 0.1
+
+publish_topic: 'berrynet/event/localImage'
+subscribe_topic: 'berrynet/dashboard/inferenceResult'
