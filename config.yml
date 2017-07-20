@@ -3,7 +3,8 @@ recover_time: 10
 camera: 'picamera'
 google_secret: 'mycreds.txt'
 twitter_secret: 'twitter_api.yml'
-
+m_pin: 26
+twitter_limit: 1
 
 targets: ['person','bird','dog','deer']
 location: 'Raleigh, NC'

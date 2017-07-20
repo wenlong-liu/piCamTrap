@@ -35,20 +35,22 @@ def _get_time():
 
 def _take_image(cam):
     current = _get_time()
-    path = '/home/pi/github/piCamTrap/rawcam/'
+    path = os.get + '/rawcam/'
     file_name = current + ".jpg"
     file_path = path + file_name
     # Try to take a picture, if not, save to logging.
     #try:
     cam.capture(file_path)
-    logging.info("Take a picture at: {}".format(current))
+    logger.info("Take a picture at: {}".format(current))
     time.sleep(0.5)
 
     return file_path
+
 '''
     except:
+
         print('Failed to take a pic!')
-        logging.debug("Failed to take a picture at: {}".format(current))
+        logging.error("Failed to take a picture at: {}".format(current))
         time.sleep(0.5)
 '''
 
@@ -56,7 +58,7 @@ def _take_image(cam):
 def _publish(topic, payload=None, qos=0, port=1883, client_id=""):
 
     publish.single(topic, payload=payload, qos=qos, port=port, client_id=client_id)
-    logging.info("Publish a message at: {}".format(_get_time()))
+    logger.info("Publish a message at: {}".format(_get_time()))
 
 
 def _subscribe(topic):
@@ -81,12 +83,19 @@ def _filter(results, _targets, confidence_threshold):
 
 
 if __name__ == "__main__":
+
+    # start logging.
+    logger_name = 'logfile.txt'
+    logging.basicConfig(filename=logger_name,level=logging.DEBUG)
+    logger = logging.getLogger('piCamTrap')
+
     os.system('berrynet-manager start')
     print('Warming up...')
     time.sleep(10)
-    print('Program started!')
+    logger.info('Program started!'.format(_get_time()))
 
     # initialize all the components.
+    logger.info('Initializing started at:'.format(_get_time()))
     print('Initializing...')
     config = _config('config.yml')
     img_num = config['img_num']
@@ -99,7 +108,9 @@ if __name__ == "__main__":
     id = config['id']
     confidence_threshold = config['confidence_threshold']
     publish_topic = config['publish_topic']
-    subscribe_topic = config['subscribe_topic']
+    subscribe_topic = config['swubscribe_topic']
+    m_pin = config['m_pin']
+    twitter_limit = config['twitter_limit']
 
     if camera == 'picamera':
         cam = picamera.PiCamera()
@@ -108,19 +119,24 @@ if __name__ == "__main__":
     if twitter_secret:
         tweet_api = tweet_auth(twitter_secret)
     print('Done initialization.')
+    logger.info('Initializing done at:'.format(_get_time()))
 
     while True:
          try:
               image_num = img_num
-              # trigger = PIR_motion.run()
-              trigger = int(input('Please enter a number, 0 or 1'))
+              trigger = PIR_motion.run(m_pin)
+              print('Waiting for triggers...')
+              # trigger = int(input('Please enter a number, 0 or 1:'))
               files = list()
-              if trigger:
+              limit = twitter_limit
 
+              if trigger:
+                    logger.info("Motion detected at: {}".format(_get_time()) )
                     # if detection motion, take 3 pictures.
                     while image_num:
                         files.append(_take_image(cam))
                         print('Taking the {}th pic!'.format(image_num))
+                        logger.debug('Taking the {}th pic at: {}!'.format(image_num, _get_time()))
                         image_num = image_num - 1
                         time.sleep(0.5)
 
@@ -128,20 +144,28 @@ if __name__ == "__main__":
                         # Publish images to local host.
                         _publish(topic=publish_topic, payload=file)
                         print('Publish a pic')
+                        logger.info('Done publish a pic to {} at: {}'.format(publish_topic, _get_time()))
                         results = _subscribe(topic=subscribe_topic)
+                        logger.info('Get feed back from {} at: {}'.format(subscribe_topic, _get_time()))
+                        for result in results:
+                            logger.debug("{} found at confidence of {}".format(result['label'], result['confidence']))
                         findings = _filter(results, targets, confidence_threshold)
                         if len(findings):
+                            status = "{} found {} in {} at:.".format(id, findings, location, _get_time())
+                            logger.info(status)
                             if google_secret:
                                 upload_to_cloud(drive, file)
-                            if twitter_secret:
-                                status = "{} found {} in {}.".format(id, findings, location)
+                            if twitter_secret and limit:
                                 update_pic(tweet_api, status, file)
+
                     print('Recovering...')
                     time.sleep(recover_time)
+                    logger.info('Done recovering at:'.format(_get_time()))
 
               time.sleep(0.5)
 
          except (KeyboardInterrupt, SystemExit): 
               os.system('berrynet-manager stop')
               print('System stopped')
+              logger.info('System stopped at:'.format(_get_time()))
               exit()

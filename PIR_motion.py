@@ -11,7 +11,7 @@ import RPi.GPIO as GPIO
 
 
 def _logging(*args):
-    print("[%08.3f]" % time.time(), ' '.join(args))
+    print("{} at {}".format(args,time.strftime("%Y-%M-%D %H:%M:%S")))
 
 
 def run(mpin, interval = 0.5):
@@ -27,7 +27,6 @@ def run(mpin, interval = 0.5):
     trigger = GPIO.setup(mpin, GPIO.IN)
 
     if trigger:
-        logging.info("Motion detected at: {}".format(time.strftime("%Y/%M/%D %H:%M:%S")))
         _logging("Motion detected")
 
     return trigger
